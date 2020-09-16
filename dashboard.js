@@ -1,57 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import React from "react";
 import blessed from "blessed";
 import { render } from "react-blessed";
+import { Today } from "./components/Today";
 
 const App = ({}) => {
-  const dateTime = new Date().toLocaleString("de-DE", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  });
-
-  const timer = useRef();
-  const [time, setTime] = useState(dateTime);
-
-  useEffect(() => {
-    timer.current = setTimeout(
-      () =>
-        setTime(
-          new Date().toLocaleString("de-DE", {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-            hour12: false,
-          }),
-        ),
-      1000,
-    );
-
-    return () => clearTimeout(timer.current);
-  }, [time]);
-
-  return (
-    <box
-      top="center"
-      left="center"
-      width="50%"
-      height="50%"
-      border={{
-        type: "line",
-      }}
-      style={{
-        border: {
-          fg: "blue",
-        },
-      }}
-    >{`Today is ${time}`}</box>
-  );
+  return <Today updateInterval={5000} />;
 };
 
 const screen = blessed.screen({
