@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState } from "react";
 import figlet from "figlet";
 import useInterval from "@use-it/interval";
 import weather from "weather-js";
 import util from "util";
-import useDeepCompareEfffect from "use-deep-compare-effect";
+import chalk from "chalk";
+import gradient from "gradient-string";
+import { useRequest } from "../hooks/useRequest";
 
 const findWeather = util.promisify(weather.find);
 
@@ -17,40 +19,9 @@ const formatWeather = ([results]) => {
   const low = `${forecast[1].low}°${degreeType}`;
   const high = `${forecast[1].high}°${degreeType}`;
 
-  return `${temperature} and ${conditions} (${low} -> ${high})`;
-};
-
-const useRequest = (promise, options, interval = null) => {
-  const [state, setState] = useState({
-    status: "loading",
-    error: null,
-    data: null,
-  });
-
-  const request = useCallback(
-    async (options) => {
-      setState({ status: "loading", error: null, data: null });
-      let data;
-
-      try {
-        data = await promise(options);
-        setState({ status: "complete", error: null, data });
-      } catch (e) {
-        setState({ status: "error", error, data: null });
-      }
-    },
-    [promise]
-  );
-
-  useDeepCompareEfffect(() => {
-    request(options);
-  }, [options, request]);
-
-  useInterval(() => {
-    request(options);
-  }, interval);
-
-  return state;
+  return `${chalk.yellow(temperature)} and ${chalk.green(
+    conditions
+  )} (${chalk.blue(low)} -> ${chalk.red(high)})`;
 };
 
 const Today = ({
@@ -59,8 +30,6 @@ const Today = ({
   degreeType = "C",
 }) => {
   const [now, setNow] = useState(new Date());
-  const [time, setTime] = useState(currentTime);
-  const [date, setDate] = useState(currentDate);
   const weather = useRequest(
     findWeather,
     { search, degreeType },
@@ -71,43 +40,20 @@ const Today = ({
     setNow(new Date());
   }, 60000);
 
-  const currentDate = figlet.textSync(
-    new Date().toLocaleString("de-DE", {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    }),
-    { font }
-  );
+  const date = now.toLocaleString("de-DE", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 
-  const currentTime = figlet.textSync(
-    new Date().toLocaleString("de-DE", {
+  const time = figlet.textSync(
+    now.toLocaleString("de-DE", {
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
       hour12: false,
     }),
     { font }
   );
-
-  useEffect(() => {
-    const date = new Date().toLocaleString("de-DE", {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
-
-    const time = figlet.textSync(
-      new Date().toLocaleString("de-DE", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      }),
-      { font }
-    );
-    setTime(time);
-    setDate(date);
-  }, [now]);
 
   return (
     <box
@@ -124,21 +70,17 @@ const Today = ({
         },
       }}
     >
-      {`${date} 
-        
-
-
-        ${time}
-        
-
-        ${
-          weather.status === "loading"
-            ? "Loading"
-            : weather.error
-            ? `Error ${weather.error}`
-            : formatWeather(weather.data)
-        }
-        `}
+      <text right={1}>{chalk.blue(date)}</text>
+      <text top="center" left="center">
+        {gradient.atlas.multiline(time)}
+      </text>
+      <text top="100%-3" left={1}>
+        {weather.status === "loading"
+          ? "Loading"
+          : weather.error
+          ? `Error ${weather.error}`
+          : formatWeather(weather.data)}
+      </text>
     </box>
   );
 };
