@@ -6,6 +6,7 @@ import util from "util";
 import chalk from "chalk";
 import gradient from "gradient-string";
 import { useRequest } from "../hooks/useRequest";
+import { Box } from "./Box";
 
 const findWeather = util.promisify(weather.find);
 
@@ -28,7 +29,12 @@ const Today = ({
   updateInterval = 900000,
   search = "Munich, Germany",
   degreeType = "C",
+  top,
+  left,
+  width,
+  height,
 }) => {
+  const boxProps = { top, left, width, height };
   const [now, setNow] = useState(new Date());
   const weather = useRequest(
     findWeather,
@@ -56,11 +62,9 @@ const Today = ({
   );
 
   return (
-    <box
-      top="center"
-      left="center"
-      width="50%"
-      height="50%"
+    <Box
+      {...boxProps}
+      label="Today"
       border={{
         type: "line",
       }}
@@ -81,7 +85,7 @@ const Today = ({
           ? `Error ${weather.error}`
           : formatWeather(weather.data)}
       </text>
-    </box>
+    </Box>
   );
 };
 
